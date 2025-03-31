@@ -1,0 +1,5 @@
+program exemplo;
+var exemplificador : string;
+begin
+read(exemplificador);
+end.

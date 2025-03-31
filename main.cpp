@@ -13,10 +13,10 @@ std::unordered_map<std::string, int> tokenMap = {
     {"=", 26}, {"<>", 27}, {"<=", 28}, {"<", 29}, {"+", 30},
     {";", 31}, {":=", 32}, {":", 33}, {"/", 34}, {".", 35},
     {",", 36}, {"*", 37}, {")", 38}, {"(", 39}, {"{", 40},
-    {"}", 41}, {"-", 42}, {"$", 43}, {"Ó", 44}
+    {"}", 41}, {"-", 42}, {"$", 43}, {"√Æ", 44}
 };
 
-std::vector<char> quebras = { ' ', '{', '}', '(', ')', '+', ';', '/', '.', ',', '*', '-', '$', '\n' };
+std::vector<char> quebras = { ' ', '{', '}', '(', ')', '+', ';', '/', '.', ',', '*', '-', '$', '\n', '\t' };
 std::vector<char> quebraComplexo = { '>', '<', ':', '@', '!', '=' };
 
 static int tokenizador(std::string lexema, std::vector<int> *tokenVector) {
@@ -30,13 +30,7 @@ static int tokenizador(std::string lexema, std::vector<int> *tokenVector) {
     {
         if (isalpha(lexema[0]) && islower(lexema[0]))
         {
-            switch (tokens.back()) {
-            case 2:
-            case 8:
-            case 21:
-                token = tokenMap.at("ident");
-                break;
-            }
+            token = tokenMap.at("ident");
         }
     }
     
@@ -53,7 +47,7 @@ std::tuple<std::vector<std::string>, std::vector<char>> lexer(std::vector<char> 
     for (size_t i = 0; i < programa.size(); i++)
     {
 
-        // Para Coment·rios em linha
+        // Para Coment√°rios em linha
 
         if (programa[i] == '@' && programa[i+1] == '@')
         {
@@ -61,7 +55,7 @@ std::tuple<std::vector<std::string>, std::vector<char>> lexer(std::vector<char> 
             continue;;
         }
 
-        // Para coment·rios em bloco
+        // Para coment√°rios em bloco
 
         if (programa[i] == '@' && programa[i + 1] == '!')
         {
@@ -69,7 +63,7 @@ std::tuple<std::vector<std::string>, std::vector<char>> lexer(std::vector<char> 
             while (i + 1 < programa.size() && !(programa[i] == '!' && programa[i + 1] == '@')) i++;
             if (i + 1 >= programa.size())
             {
-                std::cerr << "Erro lexico: coment·rio de bloco n„o fechado" << std::endl;
+                std::cerr << "Erro lexico: coment√°rio de bloco n√£o fechado" << std::endl;
                 break;
             }
             i += 1;
@@ -81,20 +75,37 @@ std::tuple<std::vector<std::string>, std::vector<char>> lexer(std::vector<char> 
             while (i + 1 < programa.size() && !(programa[i] == '"')) i++;
             if (i + 1 >= programa.size())
             {
-                std::cerr << "Erro lexico: coment·rio de bloco n„o fechado" << std::endl;
+                std::cerr << "Erro lexico: Bloco de string n√£o fechado" << std::endl;
+                
                 break;
             }
             i += 1;
             continue;
+            lexemas.push_back("string");
+            token.push_back(tokenizador(lexemaAtual, &token));
         }
 
-        // InÌcio da an·lise lexica
+        if (programa[i] == '\'')
+        {
+            i += 1;
+            while (i + 1 < programa.size() && !(programa[i] == '\'')) i++;
+            if (i + 1 >= programa.size())
+            {
+                std::cerr << "Erro lexico: Bloco literal n√£o fechado" << std::endl;
+                
+                break;
+            }
+            lexemas.push_back("literal");
+            token.push_back(tokenizador(lexemaAtual, &token));
+        }
+
+        // In√≠cio da an√°lise lexica
 
         if (std::find(quebras.begin(), quebras.end(), programa[i]) == quebras.end())
         {
             if (std::find(quebraComplexo.begin(), quebraComplexo.end(), programa[i]) == quebraComplexo.end())
             {
-                if (programa[i] != ' ')
+                if (programa[i] != ' ' && programa[i] != '\t')
                 {
                     //Insere caracter no lexema
                     lexema.push_back(programa[i]);
@@ -126,7 +137,7 @@ std::tuple<std::vector<std::string>, std::vector<char>> lexer(std::vector<char> 
                 token.push_back(tokenizador(lexemaAtual, &token));
                 lexemaAtual.clear();
             }
-            if (programa[i] != ' ' && programa[i] != '\n')
+            if (programa[i] != ' ' && programa[i] != '\n' && programa[i] != '\t')
             {
                 lexemas.push_back(std::string{ programa[i] });
                 token.push_back(tokenizador(lexemas.back(), &token));
@@ -137,7 +148,7 @@ std::tuple<std::vector<std::string>, std::vector<char>> lexer(std::vector<char> 
 
     for (size_t i = 0; i < lexemas.size(); i++)
     {
-        std::cout << "'" << lexemas[i] << "' , ";
+        std::cout << lexemas[i] << " ";
     }
 
     for (size_t i = 0; i < token.size(); i++)
@@ -164,7 +175,7 @@ int main(int argc, char const* argv[]) {
     }
 
     //std::ifstream file(argv[1]);
-    std::ifstream programa("D:\\Dev\\CLexer\\Lexer\\teste.txt");
+    std::ifstream programa("C:\\Users\\lab003a\\Documents\\Gabriel\\teste2.txt");
     if (!programa) {
         std::cerr << "Erro ao abrir o arquivo" << std::endl;
     }

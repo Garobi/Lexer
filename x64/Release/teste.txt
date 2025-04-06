@@ -1,5 +1,6 @@
-program exemplo;
-var exemplificador : string;
+program laço_for;
+  var i : integer;
 begin
-read(exemplificador);
+  for i := 1 to 5 do
+    print{ 'Número: ', i };
 end.

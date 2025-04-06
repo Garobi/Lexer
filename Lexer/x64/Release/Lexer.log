@@ -1,7 +1,7 @@
-﻿  main.cpp
-  Gerando código
-  0 of 146 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
-  Finalizada a geração de código
+﻿  lexer.cpp
+  Generating code
+  4 of 630 functions ( 0.6%) were compiled, the rest were copied from previous compilation.
+    3 functions were new in current compilation
+    7 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
   Lexer.vcxproj -> D:\Dev\CLexer\Lexer\x64\Release\Lexer.exe

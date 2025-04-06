@@ -1,5 +1,6 @@
-program exemplo;
-var exemplificador : string;
+program token_invalido;
+  var mero#1 : integer;
 begin
-read(exemplificador);
+  número#1 := 5;
+  print{número#1};
 end.

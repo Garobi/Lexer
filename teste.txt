@@ -1,6 +1,6 @@
-program token_invalido;
-  var mero#1 : integer;
+program lao_for;
+  var i : integer;
 begin
-  número#1 := 5;
-  print{número#1};
+  for i := 1 to 5 do
+    print{ 'Número: ', i };
 end.

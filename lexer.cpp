@@ -20,7 +20,7 @@ std::vector<char> quebras = { ' ', '{', '}', '(', ')', '+', ';', '/', '.', ',', 
 std::vector<char> quebraComplexo = { '>', '<', ':', '@', '!', '=' };
 int linhaAtual = 1;
 
-bool contemAcento(const std::string& str) {
+static bool contemAcento(const std::string& str) {
     for (unsigned char c : str) {
         if (c >= 128) {
             return true;
@@ -29,39 +29,29 @@ bool contemAcento(const std::string& str) {
     return false;
 }
 
-static int tokenizador(std::string lexema, std::vector<int>* tokenVector, std::vector<std::string>* lexemasVector) {
-    std::vector<int> tokens = *tokenVector;
-    std::vector<std::string> lexemas = *lexemasVector;
-    int token = -1;
-    try
+[[noreturn]] static void throwErroLexico(const std::string& message) {
+    std::cerr << "Erro lexico na linha " << linhaAtual << ": " << message << std::endl;
+    std::exit(EXIT_FAILURE);
+}
+
+static int tokenizador(std::string lexema, std::vector<std::string>& lexemasVector) {
+    if (tokenMap.count(lexema))
     {
-        token = tokenMap.at(lexema);
-        lexemasVector->push_back(lexema);
-    }
-    catch (const std::exception&)
-    {
-        if (isalpha(lexema[0]) && islower(lexema[0]))
-        {
-            if (contemAcento(lexema))
-            {
-                
-                std::cerr << "Erro lexico: ident contem caractere inválido na linha " << linhaAtual;;
-                exit(EXIT_FAILURE);
-            }
-            else
-            {
-                token = tokenMap.at("ident");
-                lexemasVector->push_back("ident");
-            }
-        }
-        else
-        {
-            std::cerr << "Erro lexico: Token Inválido na linha " << linhaAtual;
-            exit(EXIT_FAILURE);
-        }
+        lexemasVector.push_back(lexema);
+        return tokenMap.at(lexema);
     }
 
-    return token;
+    if (isalpha(lexema[0]) && islower(lexema[0]))
+    {
+        if (contemAcento(lexema))
+        {
+            throwErroLexico("Identificador contem caractere invalido");
+        }
+        lexemasVector.push_back("ident");
+        return tokenMap.at("ident");
+    }
+
+    throwErroLexico("Token Invalido: " + lexema);
 }
 
 std::tuple<std::vector<std::string>, std::vector<int>, std::vector<int>> lexer(std::vector<char> programa) {
@@ -75,15 +65,11 @@ std::tuple<std::vector<std::string>, std::vector<int>, std::vector<int>> lexer(s
 
     for (size_t i = 0; i < programa.size(); i++)
     {
-
-        if (programa[i] == 'b')
-        {
-            std::cout << "teste";
-        }
+        char caractereAtual = programa[i];
 
         // Para Comentários em linha
 
-        if (programa[i] == '@' && programa[i + 1] == '@')
+        if (caractereAtual == '@' && programa[i + 1] == '@')
         {
             while (i < programa.size() && programa[i] != '\n') i++;
             continue;;
@@ -91,15 +77,13 @@ std::tuple<std::vector<std::string>, std::vector<int>, std::vector<int>> lexer(s
 
         // Para comentários em bloco
 
-        if (programa[i] == '@' && programa[i + 1] == '!')
+        if (caractereAtual == '@' && programa[i + 1] == '!')
         {
             i += 2;
             while (i + 1 < programa.size() && !(programa[i] == '!' && programa[i + 1] == '@')) i++;
             if (i + 1 >= programa.size())
             {
-                std::cerr << "Erro lexico: comentário de bloco não fechado na linha " << linhaAtual;
-                exit(EXIT_FAILURE);
-                break;
+                throwErroLexico("Comentario de bloco nao fechado");
             }
             i += 1;
             continue;
@@ -107,20 +91,14 @@ std::tuple<std::vector<std::string>, std::vector<int>, std::vector<int>> lexer(s
 
         // Para Strings
 
-        if (programa[i] == '"')
+        if (caractereAtual == '"')
         {
-            while (i + 1 < programa.size() && !(programa[i] == '"')) i++;
-            if (i + 1 >= programa.size())
-            {
-                std::cerr << "Erro lexico: Bloco de string não fechado na linha" << linhaAtual;
-                exit(EXIT_FAILURE);
-
-                break;
-            }
-            i += 1;
-            continue;
-            token.push_back(tokenizador("string", &token, &lexemas));
+            while (i + 1 < programa.size() && !(caractereAtual == '"')) i++;
+            if (i + 1 >= programa.size()) throwErroLexico("String nao fechada");
+            token.push_back(tokenMap.at("string"));
+            lexemas.push_back("string");
             linha.push_back(linhaAtual);
+            continue;
         }
 
         // Para Literal
@@ -129,120 +107,103 @@ std::tuple<std::vector<std::string>, std::vector<int>, std::vector<int>> lexer(s
         {
             i += 1;
             while (i + 1 < programa.size() && !(programa[i] == '\'')) i++;
-            if (i + 1 >= programa.size())
-            {
-                std::cerr << "Erro lexico: Bloco literal não fechado na linha " << linhaAtual;
-                exit(EXIT_FAILURE);
-
-                break;
-            }
-            i++;
-            token.push_back(tokenizador("literal", &token, &lexemas));
+            if (i + 1 >= programa.size()) throwErroLexico("Literal nao fechado");
+            token.push_back(tokenMap.at("literal"));
+            lexemas.push_back("literal");
             linha.push_back(linhaAtual);
+            continue;
         }
 
         // Para Números
 
-        if (isdigit(programa[i]))
+        if (isdigit(caractereAtual))
         {
             bool rNum = false;
             std::string numeroAtual;
-            while (i + 1 < programa.size() && (programa[i] == '.' || isdigit(programa[i]))) {
+
+            while (i < programa.size() && (programa[i] == '.' || isdigit(programa[i]))) {
                 if (programa[i] == '.')
                 {
-                    if (rNum == true)
-                    {
-                        std::cerr << "Erro Lexico: Real não pode conter dois ou mais pontos. Linha " << linhaAtual;
-                        exit(EXIT_FAILURE);
-                    }
+                    if (rNum == true) throwErroLexico("Numero real com dois ou mais pontos");
                     rNum = true;
                 }
-                numeroAtual.push_back(programa[i]);
-                i++;
+                numeroAtual.push_back(programa[i++]);
             }
-            if (rNum == true)
+            --i;
+
+            try
             {
-                if (std::stof(numeroAtual) < 999999999)
+                if (rNum)
                 {
-                    token.push_back(tokenizador("nreal", &token, &lexemas));
-                    linha.push_back(linhaAtual);
+                    if(std::stof(numeroAtual) > 999999999) throwErroLexico("Numero real muito grande");
+                    token.push_back(tokenMap.at("nreal"));
+                    lexemas.push_back("nreal");
                 }
                 else
                 {
-                    std::cerr << "Erro Lexico: Número real maior que o permitido na linha " << linhaAtual;
-                    exit(EXIT_FAILURE);
+                    if (std::stoi(numeroAtual) > 999999999) throwErroLexico("Numero inteiro muito grande");
+                    token.push_back(tokenMap.at("nint"));
+                    lexemas.push_back("nint");
                 }
-            }
-            else
-            {
-                float teste = std::stoi(numeroAtual);
-                if (std::stoi(numeroAtual) < 999999999)
-                {
-                    token.push_back(tokenizador("nint", &token, &lexemas));
-                    linha.push_back(linhaAtual);
-                }
-                else
-                {
-                    std::cerr << "Erro Lexico: Número inteiro maior que o permitido na linha " << linhaAtual;
-                    exit(EXIT_FAILURE);
-                }
-            }
-        }
-
-        // Início da análise lexica
-
-        if (std::find(quebras.begin(), quebras.end(), programa[i]) == quebras.end())
-        {
-            if (std::find(quebraComplexo.begin(), quebraComplexo.end(), programa[i]) == quebraComplexo.end())
-            {
-                if (programa[i] != ' ' && programa[i] != '\t')
-                {
-                    //Insere caracter no lexema
-                    lexema.push_back(programa[i]);
-                }
-            }
-            else if (std::find(quebraComplexo.begin(), quebraComplexo.end(), programa[i + 1]) != quebraComplexo.end())
-            {
-                //Insere o token de quebra de palavra com multiplos caracteres na lista de lexema
-                token.push_back(tokenizador(std::string() + programa[i] + programa[i + 1], &token, &lexemas));
-                linha.push_back(linhaAtual);
-                i += 1;
-            }
-            else
-            {
-                //Insere o token de quebra de palavra com um caracter na lista de lexema
-                token.push_back(tokenizador(std::string{ programa[i] }, &token, &lexemas));
                 linha.push_back(linhaAtual);
             }
-        }
-        else
-        {
-            if (lexema.size() > 0)
+            catch (...)
             {
-                for (size_t i = 0; i < lexema.size(); i++)
-                {
-                    lexemaAtual.push_back(lexema[i]);
-                }
+                throwErroLexico("Erro nao definido");
+            }
+            continue;
+        }
 
-                // Para tokens comuns
+        // Separador de lexema unico
 
-                token.push_back(tokenizador(lexemaAtual, &token, &lexemas));
+        if (std::find(quebras.begin(), quebras.end(), caractereAtual) != quebras.end())
+        {
+            if (!lexemaAtual.empty())
+            {
+                token.push_back(tokenizador(lexemaAtual, lexemas));
                 linha.push_back(linhaAtual);
                 lexemaAtual.clear();
             }
-            if (programa[i] != ' ' && programa[i] != '\n' && programa[i] != '\t')
+
+            if (!isspace(caractereAtual))
             {
-
-                // Para quebra de linha
-
-                token.push_back(tokenizador(std::string{ programa[i] }, &token, &lexemas));
+                token.push_back(tokenizador(std::string(1, caractereAtual), lexemas));
                 linha.push_back(linhaAtual);
             }
-            lexema.clear();
+
+            if (caractereAtual == '\n') linhaAtual++;
+            continue;
         }
 
-        if (programa[i] == '\n') linhaAtual++;
+        // Separador complexo
 
+        if (std::find(quebraComplexo.begin(), quebraComplexo.end(), caractereAtual) != quebraComplexo.end())
+        {
+            std::string caracterComplexo = std::string(1, caractereAtual);
+            if (i + 1 < programa.size()) caracterComplexo += programa[i + 1];
+
+            if (tokenMap.count(caracterComplexo))
+            {
+                token.push_back(tokenMap.at(caracterComplexo));
+                lexemas.push_back(caracterComplexo);
+                linha.push_back(linhaAtual);
+            }
+            else
+            {
+                token.push_back(tokenizador(std::string(1, caractereAtual), lexemas));
+                linha.push_back(linhaAtual);
+            }
+            continue;
+        }
+
+        lexemaAtual += caractereAtual;
     }
+
+    if (!lexemaAtual.empty())
+    {
+        token.push_back(tokenizador(lexemaAtual, lexemas));
+        linha.push_back(linhaAtual);
+    }
+
     return std::make_tuple(lexemas, token, linha);
 }

@@ -1,0 +1,24 @@
+program exemplo2;
+
+@! Exemplo com procedure, if/else e for !@
+
+var i, numero : integer;
+
+procedure verificarPar(numero : integer);
+begin
+  if numero <> 0 then
+    if numero / 2 = 0 then
+      print{'O número ', numero, ' é par.'}
+    else
+      print{'O número ', numero, ' é ímpar.'}
+  else
+    print{'O número é zero.'};
+end;
+
+begin
+  print{'Digite um número:'};
+  read(numero);
+
+  for i := 1 to numero do
+    verificarPar(i);
+end.

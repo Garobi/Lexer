@@ -1,0 +1,22 @@
+program exemplo1;
+
+@! 
+ Exemplo básico com variáveis, constantes, 
+ comentários de linha e bloco, print e read.
+!@
+
+const limiteIdade = 18;
+
+var nome : string; idade : integer;
+
+begin
+  @@ Solicita o nome do usuário
+  print{'Digite seu nome:'};
+  read(nome);
+
+  @@ Solicita a idade do usuário
+  print{'Digite sua idade:'};
+  read(idade);
+
+  print{'Olá, ', nome, '! Você tem ', idade, ' anos.'};
+end.

@@ -1,0 +1,22 @@
+program exemplo3;
+
+@! Exemplo com while e chamada de procedure com parâmetro !@
+
+var contador : integer;
+
+procedure mostrarContagem(valor : integer);
+begin
+  print{'Contagem atual: ', valor};
+end;
+
+begin
+  contador := 5;
+
+  while contador > 0 do
+  begin
+    mostrarContagem(contador);
+    contador := contador - 1;
+  end;
+
+  print{'Fim da contagem!'};
+end.

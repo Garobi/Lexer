@@ -1,6 +1,6 @@
-program lao_for;
-  var i : integer;
+program tokenRuim;
+var nome : string;
 begin
-  for i := 1 to 5 do
-    print{ 'Número: ', i };
+  nome := “Gustavo”; # <- token inválido
+  print{nome};
 end.

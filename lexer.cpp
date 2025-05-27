@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 std::unordered_map<std::string, int> tokenMap = {
     {"while", 1}, {"var", 2}, {"to", 3}, {"then", 4}, {"string", 5},
@@ -22,7 +23,15 @@ int linhaAtual = 1;
 
 static bool contemAcento(const std::string& str) {
     for (unsigned char c : str) {
-        if (c >= 128) {
+        if (c > 0x7A || c < 0x30) {
+            return true;
+        }
+        if (c >= 0x3A && c <= 0x40)
+        {
+            return true;
+        }
+        if (c >= 0x5B && c <= 0x60)
+        {
             return true;
         }
     }
@@ -46,6 +55,10 @@ static int tokenizador(std::string lexema, std::vector<std::string>& lexemasVect
         if (contemAcento(lexema))
         {
             throwErroLexico("Identificador contem caractere invalido");
+        }
+        if (lexema.size() > 30)
+        {
+            throwErroLexico("Identificador excede o numero de caracteres validos!");
         }
         lexemasVector.push_back("ident");
         return tokenMap.at("ident");
@@ -72,6 +85,7 @@ std::tuple<std::vector<std::string>, std::vector<int>, std::vector<int>> lexer(s
         if (caractereAtual == '@' && programa[i + 1] == '@')
         {
             while (i < programa.size() && programa[i] != '\n') i++;
+            linhaAtual++;
             continue;;
         }
 
@@ -80,7 +94,10 @@ std::tuple<std::vector<std::string>, std::vector<int>, std::vector<int>> lexer(s
         if (caractereAtual == '@' && programa[i + 1] == '!')
         {
             i += 2;
-            while (i + 1 < programa.size() && !(programa[i] == '!' && programa[i + 1] == '@')) i++;
+            while (i + 1 < programa.size() && !(programa[i] == '!' && programa[i + 1] == '@')) {
+                if (programa[i] == '\n') linhaAtual++;
+                i++;
+            }
             if (i + 1 >= programa.size())
             {
                 throwErroLexico("Comentario de bloco nao fechado");
@@ -93,7 +110,8 @@ std::tuple<std::vector<std::string>, std::vector<int>, std::vector<int>> lexer(s
 
         if (caractereAtual == '"')
         {
-            while (i + 1 < programa.size() && !(caractereAtual == '"')) i++;
+            i++;
+            while (i + 1 < programa.size() && !(programa[i] == '"')) i++;
             if (i + 1 >= programa.size()) throwErroLexico("String nao fechada");
             token.push_back(tokenMap.at("string"));
             lexemas.push_back("string");
@@ -114,56 +132,45 @@ std::tuple<std::vector<std::string>, std::vector<int>, std::vector<int>> lexer(s
             continue;
         }
 
-        // Para Números
-
-        if (isdigit(caractereAtual))
-        {
-            bool rNum = false;
-            std::string numeroAtual;
-
-            while (i < programa.size() && (programa[i] == '.' || isdigit(programa[i]))) {
-                if (programa[i] == '.')
-                {
-                    if (rNum == true) throwErroLexico("Numero real com dois ou mais pontos");
-                    rNum = true;
-                }
-                numeroAtual.push_back(programa[i++]);
-            }
-            --i;
-
-            try
-            {
-                if (rNum)
-                {
-                    if(std::stof(numeroAtual) > 999999999) throwErroLexico("Numero real muito grande");
-                    token.push_back(tokenMap.at("nreal"));
-                    lexemas.push_back("nreal");
-                }
-                else
-                {
-                    if (std::stoi(numeroAtual) > 999999999) throwErroLexico("Numero inteiro muito grande");
-                    token.push_back(tokenMap.at("nint"));
-                    lexemas.push_back("nint");
-                }
-                linha.push_back(linhaAtual);
-            }
-            catch (...)
-            {
-                throwErroLexico("Erro nao definido");
-            }
-            continue;
-        }
-
         // Separador de lexema unico
 
         if (std::find(quebras.begin(), quebras.end(), caractereAtual) != quebras.end())
         {
             if (!lexemaAtual.empty())
             {
-                token.push_back(tokenizador(lexemaAtual, lexemas));
-                linha.push_back(linhaAtual);
+                if (isdigit(lexemaAtual[0]))
+                {
+                    // Trata número
+                    bool rNum = false;
+                    if (lexemaAtual.find_first_not_of("0123456789.") != std::string::npos)
+                        throwErroLexico("Numero invalido com caracteres nao numericos");
+
+                    if (std::count(lexemaAtual.begin(), lexemaAtual.end(), '.') > 1)
+                        throwErroLexico("Numero real com dois ou mais pontos");
+
+                    if (lexemaAtual.find('.') != std::string::npos)
+                    {
+                        if (std::stof(lexemaAtual) > 999999999) throwErroLexico("Numero real muito grande");
+                        token.push_back(tokenMap.at("nreal"));
+                        lexemas.push_back("nreal");
+                    }
+                    else
+                    {
+                        if (lexemaAtual.size() > 9) throwErroLexico("Numero inteiro muito grande");
+                        token.push_back(tokenMap.at("nint"));
+                        lexemas.push_back("nint");
+                    }
+                    linha.push_back(linhaAtual);
+                }
+                else
+                {
+                    token.push_back(tokenizador(lexemaAtual, lexemas));
+                    linha.push_back(linhaAtual);
+                }
+
                 lexemaAtual.clear();
             }
+
 
             if (!isspace(caractereAtual))
             {
@@ -187,6 +194,7 @@ std::tuple<std::vector<std::string>, std::vector<int>, std::vector<int>> lexer(s
                 token.push_back(tokenMap.at(caracterComplexo));
                 lexemas.push_back(caracterComplexo);
                 linha.push_back(linhaAtual);
+                i++;
             }
             else
             {

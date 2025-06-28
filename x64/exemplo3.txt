@@ -1,0 +1,28 @@
+program controleEstoque;
+
+var produto : string;
+    quantidade, preco : real;
+
+procedure mostrarEstoque(produto : string, quantidade : integer);
+begin
+    print{'Produto: ', produto};
+    print{'Quantidade: ', quantidade};
+end;
+
+begin
+    read(produto);
+    read(quantidade);
+    read(preco);
+
+    if quantidade > 10 then
+	begin
+    		print{'Estoque suficiente'};
+	end
+    else
+	begin
+   		print{'Estoque baixo'};
+	end;
+
+    mostrarEstoque(produto, quantidade);
+end.
+

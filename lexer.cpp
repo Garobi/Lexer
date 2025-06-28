@@ -5,20 +5,8 @@
 #include <string>
 #include <algorithm>
 
-std::unordered_map<std::string, int> tokenMap = {
-    {"while", 1}, {"var", 2}, {"to", 3}, {"then", 4}, {"string", 5},
-    {"real", 6}, {"read", 7}, {"program", 8}, {"procedure", 9}, {"print", 10},
-    {"nreal", 11}, {"nint", 12}, {"literal", 13}, {"integer", 14}, {"if", 15},
-    {"ident", 16}, {"for", 17}, {"end", 18}, {"else", 19}, {"do", 20},
-    {"const", 21}, {"begin", 22}, {"vstring", 23}, {">=", 24}, {">", 25},
-    {"=", 26}, {"<>", 27}, {"<=", 28}, {"<", 29}, {"+", 30},
-    {";", 31}, {":=", 32}, {":", 33}, {"/", 34}, {".", 35},
-    {",", 36}, {"*", 37}, {")", 38}, {"(", 39}, {"{", 40},
-    {"}", 41}, {"-", 42}, {"$", 43}, {"î", 44}
-};
+#include "definitions.h"
 
-std::vector<char> quebras = { ' ', '{', '}', '(', ')', '+', ';', '/', '.', ',', '*', '-', '$', '\n', '\t'};
-std::vector<char> quebraComplexo = { '>', '<', ':', '@', '!', '=' };
 int linhaAtual = 1;
 
 static bool contemAcento(const std::string& str) {

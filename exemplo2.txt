@@ -1,0 +1,19 @@
+program dadosPessoais;
+
+var NomeCompleto : string;    @@ começa com letra maiúscula
+    idade : integer;
+    altura@ : real;           @@ caractere inválido
+    cidade, estado : string;
+
+begin
+    read(NomeCompleto);       @@ Nome inválido
+    idade := 99999999999;     @@ valor excede o limite de integer
+    altura@ := 1.75;          @@ uso de variável com caractere inválido
+    cidade := “São Paulo;     @@ string não fechada
+    estado := “SP”;           @@ correto
+
+    @! Comentário iniciado
+    mas nunca fechado...
+
+    print{NomeCompleto, idade, altura@, cidade, estado};
+end.

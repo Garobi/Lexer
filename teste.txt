@@ -1,6 +1,12 @@
-program tokenRuim;
-var nome : string;
+program subtraiAteZero;
+
+const zero = 0;
+var numero : integer;
+
 begin
-  nome := “Gustavo”; # <- token inválido
-  print{nome};
+	for numero := 10 to 0 do
+	begin
+print{ numero };
+numero := numero - 1;
+end;
 end.

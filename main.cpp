@@ -5,6 +5,9 @@
 #include <fstream>
 #include <iomanip>
 #include "lexer.h"
+#include "parser.h"
+#include "semantic.h"
+
 
 
 static void printLexer(std::tuple<std::vector<std::string>, std::vector<int>, std::vector<int>> respostaLexer) {
@@ -27,6 +30,7 @@ static void printLexer(std::tuple<std::vector<std::string>, std::vector<int>, st
 int main(int argc, char const* argv[]) {
 
     char programaCh;
+    bool repostaParser;
     std::vector<char> programaVector;
     std::tuple<std::vector<std::string>, std::vector<int>, std::vector<int>> respostaLexer;
 
@@ -45,8 +49,18 @@ int main(int argc, char const* argv[]) {
     }
 
     respostaLexer = lexer(programaVector);
-
     printLexer(respostaLexer);
+	repostaParser = parser(respostaLexer);
+
+    if (!repostaParser) {
+        return 1;
+    }
+
+    bool respostaSemantica = semanticAnalyzer(respostaLexer);
+    if (!respostaSemantica) {
+        return 1;
+    }
+
 
     programa.close();
 

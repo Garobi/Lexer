@@ -1,0 +1,34 @@
+program cadastroAlunos;
+
+var nome, curso : string;
+    idade, anoEntrada : integer;
+
+procedure apresentar(nome : string; curso : string; idade : integer);
+begin
+    print{‘Aluno: ‘, nome};
+    print{‘Curso: ‘, curso};
+    print{‘Idade: ‘, idade};
+end;
+
+begin
+    read(nome);
+    read(curso);
+    read(idade);
+    read(anoEntrada);
+
+    if idade >= 18 then
+    begin
+        print{‘Maior de idade’};
+    end
+    else
+    begin
+        print{‘Menor de idade’};
+    end;
+
+    for ano := anoEntrada to 2025 do
+    begin
+        print{‘Ano ativo: ‘, ano};
+    end;
+
+    apresentar(nome, curso, idade);
+end.
